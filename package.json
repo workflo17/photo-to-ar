@@ -1,0 +1,24 @@
+{
+  "name": "photo-to-ar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "One product photograph in, a textured 3D asset you can stand in your own room out. Local-first: the reconstruction runs on this machine's GPU.",
+  "scripts": {
+    "start": "node server.mjs",
+    "lan": "node tools/lan.mjs",
+    "test": "node tools/test.mjs"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "^4.0.0",
+    "@gltf-transform/extensions": "^4.0.0",
+    "@gltf-transform/functions": "^4.0.0",
+    "@google/model-viewer": "^4.0.0",
+    "draco3dgltf": "^1.5.7",
+    "meshoptimizer": "^0.22.0",
+    "mikktspace": "^1.1.1",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.3",
+    "three": "^0.169.0"
+  }
+}

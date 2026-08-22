@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo to AR · Workflo</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/studio.css">
+<!-- GLTFLoader and OrbitControls import from the bare specifier "three", which a
+     browser cannot resolve on its own. Everything is served from this machine, so
+     there is no CDN in the chain. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "/vendor/three/build/three.module.js",
+    "three/addons/": "/vendor/three/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<header class="bar">
+  <span class="plate">WF</span>
+  <b>Photo to AR</b>
+  <span class="sub">one photograph in, a thing you can stand in your room out</span>
+  <span id="fit" class="chip" hidden></span>
+      <span id="warn" class="chip bad" hidden></span>
+  <span id="gpu" class="chip">checking…</span>
+</header>
+
+<!-- ============================================================ start -->
+<section id="stage-start" class="stage">
+  <div class="start">
+    <h1>Start with a photograph</h1>
+    <p class="lede">Plain background if you have one. The reconstruction runs on this
+      machine's GPU, so nothing leaves the building, and it takes a couple of minutes.</p>
+
+    <div id="drop" class="drop">
+      <p class="views-help">One photograph is usually enough: the model reconstructs
+        the hidden sides from experience, and on a roughly symmetric product that guess
+        measures as well as the front. <b>Add more views when the piece is asymmetric
+        or a distinctive detail lives on the back.</b> Front is required.</p>
+      <div class="views">
+        <label class="view" data-side="front"><input type="file" accept="image/*" hidden><i>Front</i><em>required</em></label>
+        <label class="view" data-side="left"><input type="file" accept="image/*" hidden><i>Left</i><em>optional</em></label>
+        <label class="view" data-side="back"><input type="file" accept="image/*" hidden><i>Back</i><em>optional</em></label>
+        <label class="view" data-side="right"><input type="file" accept="image/*" hidden><i>Right</i><em>optional</em></label>
+      </div>
+      <button class="pick" id="build" disabled><span>Build the model</span></button>
+      <label class="height">
+        How tall is the real thing?
+        <input type="number" id="height" value="0.78" min="0.05" max="3" step="0.01"> m
+      </label>
+      <label class="height">
+        Width and depth, if you know them
+        <input type="number" id="width" placeholder="width" min="0.05" max="5" step="0.01">
+        <input type="number" id="depth" placeholder="depth" min="0.05" max="5" step="0.01"> m
+        <span class="dim-note">Optional. With all three, the AR bounding box matches the
+        real product exactly, which is what a retail feed asks for.</span>
+      </label>
+      <label class="height">
+        Colour
+        <select id="engine">
+          <option value="colour" selected>From the photo, the real colour</option>
+          <option value="hybrid">Shape from every photo, colour from the front (slowest, best with 3+ photos)</option>
+          <option value="shape">Shape only, paint it yourself</option>
+        </select>
+      </label>
+      <label class="height" id="quality-row">
+        Quality
+        <select id="quality">
+          <option value="draft">Draft, about 90 seconds</option>
+          <option value="standard" selected>Standard, about 2 minutes</option>
+          <option value="fine">Fine, about 4 minutes</option>
+        </select>
+      </label>
+      <p class="hint">Height is what makes the AR placement honest. A chair at the
+        wrong scale is a toy.</p>
+    </div>
+
+    <div id="progress" class="progress" hidden>
+      <div class="spinner"></div>
+      <p id="log">starting…</p>
+      <p class="hint">Sampling a shape latent at 3072 and marching it into a mesh.
+        The first run after a cold start also loads 4.6 GB of weights.</p>
+    </div>
+
+    <h2>Earlier builds</h2>
+    <div id="recent" class="recent-list"></div>
+  </div>
+</section>
+
+<!-- =========================================================== studio -->
+<section id="stage-studio" class="stage studio" hidden>
+  <div class="viewport">
+    <canvas id="view"></canvas>
+    <p class="viewhint">Drag to orbit · scroll to zoom · <b>click a surface to select that part</b></p>
+  </div>
+
+  <aside class="panel">
+    <div class="pane">
+      <h3>Parts</h3>
+      <p class="dek">Found by creases in the surface. Click one here or on the model.</p>
+      <div id="regions" class="regions"></div>
+      <label class="row resplit">
+        <span>Split finer</span>
+        <input type="range" id="crease" min="6" max="45" step="1" value="38">
+        <output id="crease-out">38&deg;</output>
+      </label>
+      <button id="resplit" class="ghost-btn">Re-split the parts</button>
+      <p class="dek" id="resplit-note">Rebuilds from the reconstruction, no GPU needed.
+        A lower angle finds more parts. This resets the painting.</p>
+    </div>
+
+    <div class="pane">
+      <h3>Painting <span id="sel-name">—</span></h3>
+      <label class="all"><input type="checkbox" id="apply-all"> Apply to every part</label>
+
+      <div id="materials" class="materials"></div>
+      <button id="new-mat" class="ghost-btn">Invent a cloth</button>
+
+      <div id="mat-maker" class="maker" hidden>
+        <label class="row"><span>Name</span><input type="text" id="m-name" placeholder="Oat herringbone" maxlength="40"></label>
+        <label class="row"><span>Weave</span>
+          <select id="m-weave">
+            <option value="plain">Plain</option>
+            <option value="twill" selected>Twill</option>
+            <option value="satin">Satin</option>
+            <option value="boucle">Bouclé</option>
+            <option value="velvet">Velvet</option>
+          </select>
+        </label>
+        <label class="row"><span>Colour</span><input type="color" id="m-native" value="#cfc4ad"></label>
+        <label class="row"><span>Threads</span>
+          <input type="range" id="m-threads" min="12" max="90" step="1" value="40"><output id="m-threads-out">40</output></label>
+        <label class="row"><span>Roughness</span>
+          <input type="range" id="m-rough" min="0.1" max="1" step="0.01" value="0.88"><output id="m-rough-out">0.88</output></label>
+        <label class="row"><span>Relief</span>
+          <input type="range" id="m-normal" min="1" max="16" step="0.5" value="6"><output id="m-normal-out">6</output></label>
+        <button id="m-make" class="ghost-btn lit">Weave it</button>
+        <p class="dek" id="m-note">Thread count is how fine the cloth is. Relief is how
+          deep the weave sits. It takes about a second.</p>
+      </div>
+
+      <label class="row">
+        <span>Colour</span>
+        <input type="color" id="tint" value="#b9bed6">
+      </label>
+
+      <label class="row" id="glow-row" hidden>
+        <span>Glow</span>
+        <input type="checkbox" id="glow" checked>
+        <output id="glow-out">lights up as photographed</output>
+      </label>
+
+      <label class="row" id="tile-row">
+        <span>Texture scale</span>
+        <input type="range" id="tile" min="0.25" max="6" step="0.05" value="1">
+        <output id="tile-out">1.0×</output>
+      </label>
+
+      <label class="row">
+        <span>Roughness</span>
+        <input type="range" id="rough" min="0" max="1" step="0.01">
+      </label>
+
+      <label class="row">
+        <span>Metallic</span>
+        <input type="range" id="metal" min="0" max="1" step="0.01">
+      </label>
+    </div>
+
+    <div class="pane export">
+      <button id="export">Build the AR model</button>
+      <p id="export-note" class="dek"></p>
+      <p id="ar-row" class="dek" hidden>
+        <a id="ar-link" href="#" target="_blank">Open the AR page</a>.
+        On a phone, open it from this machine's network address, not localhost.
+      </p>
+    </div>
+  </aside>
+</section>
+
+<script type="module" src="/studio.js"></script>
+</body>
+</html>

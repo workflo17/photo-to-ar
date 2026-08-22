@@ -1,0 +1,46 @@
+# Local TLS for testing AR on a phone over the LAN. certs/key.pem is a private
+# key and must never be committed.
+certs/
+
+# Everything the pipeline produces. Reconstructions, bakes, view renders and
+# comparison sheets, about 2.5 GB of it.
+projects/
+showcase/
+compare/
+abtmp/
+carvetest/
+culltest/
+dltest/
+smtest*/
+flatviews*/
+colviews/
+out/
+tmp/
+
+# Fabric and material maps used by the configurator. Left out because their
+# licences are not recorded here, so republishing them is not mine to do.
+assets/
+
+# A single 9 MB page with its data inlined. The pipeline regenerates it.
+web/showcase-godzilla.html
+
+node_modules/
+.env
+*.log
+*.zip
+
+# Loose comparison and debug frames dropped at the top level during development.
+*.png
+*.jpg
+gtviews/
+
+# One-off patch scripts used to apply a change during development. They are
+# history, not source, and the change they made is already in lib/.
+spiketest/
+
+# Debugging fixtures from individual spikes. Nothing in lib/, tools/ or the
+# server refers to them.
+walltest/
+pockettest/
+mlstest/
+mvc.json

@@ -1,0 +1,194 @@
+/* Same dichroic palette as the portfolio, because this is one of its exhibits. */
+:root{
+  color-scheme:dark;
+  --void:#07080F; --slab:#10121F; --seam:#242945; --bone:#E8ECFF;
+  --fissure:#9B6BFF; --ember:#48F2E2; --jade:#5CE6B0; --ash:#8E95BF; --magenta:#FF5FA8;
+  --disp:"Big Shoulders Display","Arial Narrow",system-ui,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+  --body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--void);color:var(--bone);font:15px/1.6 var(--body);
+  display:flex;flex-direction:column;overflow:hidden}
+
+/* ---------------------------------------------------------------- header */
+.bar{display:flex;align-items:center;gap:12px;padding:11px 18px;
+  border-bottom:1px solid var(--seam);background:var(--slab);flex:none}
+.plate{display:inline-flex;align-items:center;color:var(--void);font-family:var(--disp);
+  font-weight:800;font-size:1.05rem;line-height:1;padding:6px 9px 5px;
+  background:linear-gradient(135deg,var(--ember),var(--fissure));
+  clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
+.bar b{font-family:var(--disp);font-weight:700;font-size:1.1rem;letter-spacing:.03em;text-transform:uppercase}
+.bar .sub{color:var(--ash);font-size:.82rem}
+#fit{margin-left:auto}
+.chip{font:600 .66rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  padding:7px 11px;border:1px solid var(--seam);border-radius:2px;color:var(--ash)}
+.chip.ok{color:var(--jade);border-color:color-mix(in srgb,var(--jade) 40%,transparent)}
+.chip.bad{color:var(--magenta);border-color:color-mix(in srgb,var(--magenta) 40%,transparent)}
+
+.stage{flex:1;min-height:0;overflow:auto}
+
+/* ----------------------------------------------------------------- start */
+.start{max-width:64ch;margin:0 auto;padding:56px 22px 80px}
+h1{font-family:var(--disp);font-weight:750;font-size:clamp(2.1rem,5vw,3.2rem);line-height:.98;
+  text-transform:uppercase;margin:0 0 14px}
+h2{font-family:var(--disp);font-weight:700;font-size:1.3rem;text-transform:uppercase;
+  letter-spacing:.02em;margin:48px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--seam)}
+.lede{color:#C8CEEA;margin:0 0 28px}
+.hint{color:var(--ash);font-size:.84rem;margin:10px 0 0}
+
+.drop{border:1px dashed var(--seam);border-radius:4px;padding:26px;background:var(--slab)}
+.pick input{display:none}
+.pick span{display:inline-block;background:var(--ember);color:var(--void);cursor:pointer;
+  font:700 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  padding:14px 20px;border-radius:2px}
+.pick span:hover{filter:brightness(1.08)}
+.height{display:block;margin-top:18px;color:var(--ash);font-size:.86rem}
+.height input{width:88px;background:var(--void);color:var(--bone);border:1px solid var(--seam);
+  border-radius:2px;padding:7px 9px;font:inherit;margin:0 4px 0 8px}
+
+.progress{border:1px solid var(--seam);border-radius:4px;padding:26px;background:var(--slab);
+  display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.progress.bad{border-color:var(--magenta)}
+.progress p{margin:0}
+#log{font:600 .8rem/1.5 var(--mono);color:var(--ember)}
+.spinner{width:22px;height:22px;border:2px solid var(--seam);border-top-color:var(--ember);
+  border-radius:50%;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
+
+.recent-list{display:grid;gap:8px}
+.recent{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;
+  background:var(--slab);border:1px solid var(--seam);border-radius:3px;color:var(--bone);
+  padding:12px 14px;cursor:pointer;font:inherit;text-align:left}
+.recent:hover{border-color:var(--fissure)}
+.recent em{color:var(--ash);font-style:normal;font-size:.78rem}
+.none{color:var(--ash);font-size:.88rem}
+
+/* ---------------------------------------------------------------- studio */
+.studio{display:grid;grid-template-columns:1fr 340px;height:100%;overflow:hidden}
+.viewport{position:relative;min-width:0;background:
+  radial-gradient(120% 90% at 50% 15%,#141830 0%,var(--void) 70%)}
+#view{width:100%;height:100%;display:block;touch-action:none}
+.viewhint{position:absolute;left:0;right:0;bottom:12px;text-align:center;margin:0;
+  font:600 .66rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ash);
+  pointer-events:none}
+.viewhint b{color:var(--ember);font-weight:600}
+
+.panel{border-left:1px solid var(--seam);background:var(--slab);overflow-y:auto;
+  display:flex;flex-direction:column}
+.pane{padding:16px 16px 20px;border-bottom:1px solid var(--seam)}
+.pane h3{font-family:var(--disp);font-weight:700;font-size:1.05rem;text-transform:uppercase;
+  letter-spacing:.03em;margin:0 0 4px}
+.pane h3 span{color:var(--ember)}
+.dek{color:var(--ash);font-size:.8rem;margin:0 0 12px}
+
+.regions{display:grid;gap:5px;max-height:210px;overflow-y:auto}
+.region{display:flex;align-items:center;gap:9px;width:100%;background:transparent;
+  border:1px solid var(--seam);border-radius:3px;color:var(--bone);padding:7px 9px;
+  cursor:pointer;font:inherit;font-size:.85rem;text-align:left}
+.region:hover{border-color:var(--fissure)}
+.region.on{border-color:var(--ember);background:color-mix(in srgb,var(--ember) 8%,transparent)}
+.region i{width:15px;height:15px;border-radius:2px;border:1px solid rgba(255,255,255,.22);flex:none}
+.region span{flex:1}
+.region em{color:var(--ash);font-style:normal;font-size:.72rem;font-variant-numeric:tabular-nums}
+
+.all{display:flex;align-items:center;gap:8px;color:var(--ash);font-size:.8rem;margin-bottom:12px}
+
+.materials{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+.mat{background:transparent;border:1px solid var(--seam);border-radius:3px;padding:5px;
+  cursor:pointer;color:var(--bone);font:inherit;display:grid;gap:5px;justify-items:center}
+.mat:hover{border-color:var(--fissure)}
+.mat.on{border-color:var(--ember);background:color-mix(in srgb,var(--ember) 10%,transparent)}
+.mat img,.mat .plain{width:100%;aspect-ratio:1;border-radius:2px;object-fit:cover;display:block}
+/* Each paint gets a swatch that shows how it reflects, not just that it exists: the
+   five were identical grey squares, which told a person nothing about why they would
+   pick gloss over satin. A radial highlight whose size tracks roughness does the job
+   in pure CSS. */
+.mat .plain{background:linear-gradient(135deg,#5c637f,#2a2f45)}
+.mat[data-id="matte"] .plain{background:radial-gradient(circle at 35% 30%,#7a8199 0%,#5c637f 55%,#3a4058 100%)}
+.mat[data-id="satin"] .plain{background:radial-gradient(circle at 35% 30%,#b7bdd4 0%,#6a7190 30%,#3a4058 100%)}
+.mat[data-id="gloss"] .plain{background:radial-gradient(circle at 34% 28%,#ffffff 0%,#dfe4f5 6%,#6a7190 22%,#2a2f45 100%)}
+.mat[data-id="metal"] .plain{background:linear-gradient(160deg,#cfd3e0 0%,#6e7389 35%,#b8bdcc 50%,#4a4f63 70%,#9a9fb0 100%)}
+.mat[data-id="chrome"] .plain{background:linear-gradient(170deg,#f4f6fb 0%,#2a2f45 38%,#eef0f7 48%,#3a4058 58%,#c9cddb 100%)}
+.mat span{font-size:.66rem;line-height:1.25;color:var(--ash);text-align:center}
+
+.row{display:grid;grid-template-columns:82px 1fr auto;align-items:center;gap:10px;
+  margin-bottom:11px;font-size:.82rem;color:var(--ash)}
+.row input[type=color]{width:100%;height:30px;padding:0;border:1px solid var(--seam);
+  border-radius:2px;background:none;cursor:pointer}
+.row input[type=range]{width:100%;accent-color:var(--ember)}
+.row output{font:600 .72rem var(--mono);color:var(--bone);min-width:34px;text-align:right}
+
+.export{margin-top:auto}
+#export{width:100%;background:var(--ember);color:var(--void);border:0;border-radius:2px;
+  padding:14px;font:700 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer}
+#export:disabled{opacity:.55;cursor:progress}
+#export.ready{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{filter:brightness(1.22)}}
+@media (prefers-reduced-motion:reduce){#export.ready{animation:none}}
+#export-note{margin-top:10px}
+#ar-row a{color:var(--ember)}
+
+@media (max-width:900px){
+  .studio{grid-template-columns:1fr;grid-template-rows:52vh 1fr}
+  .panel{border-left:0;border-top:1px solid var(--seam)}
+}
+:focus-visible{outline:2px solid var(--ember);outline-offset:2px;border-radius:2px}
+
+/* the re-split control: a rebuild, so it must not look like the paint controls */
+.resplit{margin-top:12px}
+.ghost-btn{width:100%;background:transparent;border:1px solid var(--seam);color:var(--bone);
+  border-radius:2px;padding:9px;cursor:pointer;font:700 .68rem/1 var(--mono);
+  letter-spacing:.1em;text-transform:uppercase}
+.ghost-btn:hover{border-color:var(--fissure);color:var(--fissure)}
+.ghost-btn:disabled{opacity:.5;cursor:progress}
+#resplit-note{margin-top:8px;font-size:.74rem}
+.height select{background:var(--void);color:var(--bone);border:1px solid var(--seam);
+  border-radius:2px;padding:7px 9px;font:inherit;margin-left:8px}
+
+/* ------------------------------------------------------- multi-view upload */
+.views-help{color:var(--ash);font-size:.86rem;margin:0 0 14px}
+.views-help b{color:var(--bone)}
+.views{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.view{position:relative;aspect-ratio:1;border:1px dashed var(--seam);border-radius:3px;
+  display:grid;place-content:center;gap:3px;cursor:pointer;background:var(--void);
+  background-size:cover;background-position:center;text-align:center;overflow:hidden}
+.view:hover{border-color:var(--fissure)}
+.view.has{border-style:solid;border-color:var(--ember)}
+/* once a thumbnail is behind it the label needs its own ground to stay readable */
+.view.has i,.view.has em{background:rgba(7,8,15,.72);padding:2px 6px;border-radius:2px}
+.view i{font:700 .72rem/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--bone);font-style:normal}
+.view em{font:.62rem/1 var(--body);color:var(--ash);font-style:normal}
+.view.has em{color:var(--ember)}
+button.pick{border:0;background:none;padding:0;width:100%}
+button.pick:disabled span{opacity:.4;cursor:not-allowed}
+button.pick span{width:100%}
+
+/* ------------------------------------------------------------- cloth maker */
+.maker{margin-top:12px;padding:12px;border:1px solid var(--seam);border-radius:3px;
+  background:color-mix(in srgb,var(--fissure) 5%,transparent)}
+.maker .row{grid-template-columns:74px 1fr auto}
+.maker input[type=text],.maker select{background:var(--void);color:var(--bone);
+  border:1px solid var(--seam);border-radius:2px;padding:6px 8px;font:inherit;font-size:.82rem;width:100%}
+.ghost-btn.lit{border-color:var(--ember);color:var(--ember);margin-top:6px}
+.ghost-btn.lit:hover{background:color-mix(in srgb,var(--ember) 12%,transparent)}
+#new-mat{margin-bottom:4px}
+/* a custom cloth has no dyed swatch, so its tile is tinted to show its colour */
+.mat.is-custom img{mix-blend-mode:multiply}
+.mat.is-custom{position:relative}
+.mat .kill{position:absolute;top:2px;right:2px;width:16px;height:16px;line-height:14px;
+  border:0;border-radius:2px;background:rgba(7,8,15,.75);color:var(--ash);
+  font:700 11px/1 var(--mono);cursor:pointer;padding:0}
+.mat .kill:hover{color:var(--magenta)}
+
+/* An author display rule beats the user agent's [hidden]{display:none}, so .studio's
+   display:grid was keeping the studio on screen underneath the start page. Any element
+   carrying hidden must stay hidden regardless of what else styles it. */
+[hidden]{display:none !important}
+
+.dim-note{display:block;color:var(--ash);font-size:.74rem;margin-top:4px;max-width:46ch}
+#width,#depth{width:72px}
