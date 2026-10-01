@@ -19,6 +19,7 @@ ws.onmessage = (ev) => {
 const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
 const evaluate = async (e) => (await send('Runtime.evaluate', { expression: e, returnByValue: true, awaitPromise: true })).result?.result?.value;
 await send('Page.enable'); await send('Runtime.enable'); await send('Log.enable');
+if (process.env.SCHEME) await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: process.env.SCHEME }] });
 await send('Page.navigate', { url: process.argv[2] || 'http://localhost:5140' });
 await sleep(3000);
 if (process.argv[3]) await evaluate(`document.querySelector('${process.argv[3]}').click()`);

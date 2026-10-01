@@ -308,6 +308,7 @@ async function load(id) {
   renderRegions();
   select(0);
   $('#ar-link').href = `/ar/${id}`;
+
 }
 
 /* --------------------------------------------------------------- selection */
@@ -436,6 +437,30 @@ $('#tile').oninput = (e) => patch({ tileScale: Number(e.target.value) });
 $('#glow').onchange = (e) => patch({ glow: e.target.checked });
 $('#rough').oninput = (e) => patch({ roughness: e.target.value === '' ? null : Number(e.target.value) });
 $('#metal').oninput = (e) => patch({ metallic: e.target.value === '' ? null : Number(e.target.value) });
+
+/* --------------------------------------------------------- the client page */
+$('#c-build').onclick = async () => {
+  const btn = $('#c-build'), note = $('#c-note');
+  if (!state.id) return;
+  btn.disabled = true;
+  note.textContent = 'Building the page…';
+  try {
+    const r = await fetch(`/api/projects/${state.id}/dropin`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: $('#c-name').value, brand: $('#c-brand').value, url: $('#c-url').value }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'failed');
+    note.textContent = `${(j.bytes / 1e6).toFixed(1)} MB. Unzip it and run: npx vercel --prod`;
+    const a = document.createElement('a');
+    a.href = j.zip; a.download = 'client-page.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+  } catch (e) {
+    note.textContent = `Could not build it: ${e.message}`;
+  }
+  btn.disabled = false;
+};
 
 /* ------------------------------------------------------------- cloth maker */
 for (const [id, out, fmt] of [['m-threads', 'm-threads-out', (v) => v],

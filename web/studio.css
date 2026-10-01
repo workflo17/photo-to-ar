@@ -192,3 +192,14 @@ button.pick span{width:100%}
 
 .dim-note{display:block;color:var(--ash);font-size:.74rem;margin-top:4px;max-width:46ch}
 #width,#depth{width:72px}
+
+/* the client page block: a details, so it does not shout at someone who is painting */
+#client-block{margin-top:14px;border-top:1px solid var(--seam);padding-top:10px}
+#client-block summary{cursor:pointer;font:600 .78rem var(--body);color:var(--ash);letter-spacing:.02em}
+#client-block summary:hover{color:var(--bone)}
+#client-block .row{margin-top:8px;grid-template-columns:64px 1fr}
+#client-block input[type=text]{width:100%;min-width:0;background:var(--void);color:var(--bone);
+  border:1px solid var(--seam);border-radius:6px;padding:6px 8px;font:inherit;font-size:.78rem}
+#client-block input[type=text]:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
+#client-block button{margin-top:10px}
+#c-note{margin-top:8px}

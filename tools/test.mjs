@@ -273,6 +273,39 @@ for (const [file, type] of [['model.glb', 'model/gltf-binary'], ['model.usdz', '
   }
 }
 
+/* ---- the page you hand to a client -------------------------------------------- */
+{
+  const { existsSync } = await import('node:fs');
+  const target = projects.find((p) => existsSync(`projects/${p.id}/model.glb`));
+  if (!target) {
+    console.log('  skip  client page (nothing baked on disk)');
+  } else {
+    const r = await fetch(`${BASE}/api/projects/${target.id}/dropin`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'Test Product', brand: 'Test', url: 'https://example.com/x' }),
+    });
+    const j = await r.json();
+    check('the studio can build a client page', r.ok && j.ok, j.error || j.detail || '');
+    if (j.ok) {
+      const { readFile } = await import('node:fs/promises');
+      const page = await readFile(`projects/${target.id}/dropin/index.html`, 'utf8');
+      // The three things a client page fails silently without: the AR button, the
+      // USDZ source iOS reads, and the content type that makes iOS open it at all.
+      const cfg = JSON.parse(await readFile(`projects/${target.id}/dropin/vercel.json`, 'utf8'));
+      const usdzHeader = JSON.stringify(cfg.headers).includes('model/vnd.usdz+zip');
+      check('the client page ships AR, a USDZ and its content type',
+        /ios-src="model\.usdz"/.test(page) && /slot="ar-button"/.test(page) && usdzHeader,
+        `ios-src ${/ios-src/.test(page)}, ar-button ${/ar-button/.test(page)}, usdz mime ${usdzHeader}`);
+      check('the client page carries its own viewer and decoder',
+        existsSync(`projects/${target.id}/dropin/vendor/model-viewer.min.js`)
+        && existsSync(`projects/${target.id}/dropin/vendor/draco/draco_decoder.wasm`));
+      const zr = await fetch(`${BASE}${j.zip}`);
+      check('the client page downloads as one zip', zr.ok && Number(zr.headers.get('content-length')) > 1e6,
+        `${((Number(zr.headers.get('content-length')) || 0) / 1e6).toFixed(1)} MB`);
+    }
+  }
+}
+
 /* ---- delivery: compression, revalidation, forced download --------------------- */
 {
   const gz = await fetch(`${BASE}/vendor/model-viewer/model-viewer.min.js`,

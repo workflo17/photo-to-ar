@@ -114,7 +114,7 @@
     </div>
 
     <div class="pane">
-      <h3>Painting <span id="sel-name">—</span></h3>
+      <h3>Painting <span id="sel-name">nothing</span></h3>
       <label class="all"><input type="checkbox" id="apply-all"> Apply to every part</label>
 
       <div id="materials" class="materials"></div>
@@ -178,6 +178,17 @@
         <a id="ar-link" href="#" target="_blank">Open the AR page</a>.
         On a phone, open it from this machine's network address, not localhost.
       </p>
+
+      <details id="client-block">
+        <summary>Make a page for a client</summary>
+        <p class="dek">A folder you can put on any static host: the product in a viewer,
+          the AR button, the real size, and a QR code if you know the address it will live at.</p>
+        <label class="row"><span>Product</span><input id="c-name" type="text" placeholder="Boucle Lounge Chair"></label>
+        <label class="row"><span>Brand</span><input id="c-brand" type="text" placeholder="optional"></label>
+        <label class="row"><span>Address</span><input id="c-url" type="text" placeholder="https://… (optional, adds the QR)"></label>
+        <button id="c-build" class="ghost-btn">Download the page</button>
+        <p id="c-note" class="dek"></p>
+      </details>
     </div>
   </aside>
 </section>

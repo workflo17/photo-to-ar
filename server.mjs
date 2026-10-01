@@ -92,6 +92,27 @@ async function finishColour(dir, meta, ch, blankOpts = null, pass = 1) {
   return meta;
 }
 
+/** Run a node script of this project's own, and give back what it printed. */
+function runNode(args) {
+  return promisify(execFile)(process.execPath, args, { cwd: ROOT, maxBuffer: 1 << 26 });
+}
+
+/**
+ * The photograph's subject silhouette, for makeBlank's pose repair. Built from the
+ * matte that already exists before reconstruction, so it costs one python call and
+ * no GPU. Best-effort: without it the Blank is built exactly as before.
+ */
+async function poseMask(dir, ch) {
+  try {
+    await runPy('python', [join(ROOT, 'lib', 'photomask.py'),
+      join(dir, 'matted-front.png'), join(dir, 'pose-mask.bin'), '192']);
+    return new Uint8Array(await readFile(join(dir, 'pose-mask.bin')));
+  } catch (e) {
+    ch.send('progress', { stage: 'finish', detail: `no photo mask for pose repair: ${e.message.split('\n')[0]}` });
+    return null;
+  }
+}
+
 async function scoreFit(dir) {
   const { NodeIO } = await import('@gltf-transform/core');
   const { findView } = await import('./lib/align.mjs');
@@ -395,6 +416,10 @@ const server = createServer(async (req, res) => {
         }
         const blankOpts = {
           targetHeight: heightM, targetWidth: widthM, targetDepth: depthM,
+          // the photograph's own silhouette, so makeBlank can stand a flat
+          // reconstruction upright (a pendant photographed on a table comes back
+          // lying on it); the fit score later rebuilds the same mask its own way
+          photoMask: await poseMask(dir, ch),
           // a carved hull only needs its voxel staircase taken off (three passes; eight
           // was tuned for the raw splat mesh and smoothed a figurine's fins away);
           // Hunyuan3D's surface net is already smooth and would only lose its creases
@@ -442,6 +467,9 @@ const server = createServer(async (req, res) => {
           targetHeight: Number(opts.targetHeight) || 0.78,
           targetWidth: Number(opts.targetWidth) || null,
           targetDepth: Number(opts.targetDepth) || null,
+          // same mask as the first build, so a refine keeps the repaired pose
+          // rather than quietly laying a flat piece back down
+          photoMask: await poseMask(dir, ch),
           smoothPasses: prevEngine === 'colour' ? 3 : 0,
           carve: prevEngine === 'colour',
           dense: prevEngine === 'hybrid',
@@ -459,6 +487,31 @@ const server = createServer(async (req, res) => {
         ch.send('done', meta);
       } catch (e) { ch.send('failed', { error: e.message }); }
       return ch.end();
+    }
+
+    // A page for a client: the same folder tools/dropin.mjs writes, zipped, so the
+    // person can put it on any static host without touching a terminal here.
+    const dropM = path.match(/^\/api\/projects\/([a-z0-9-]+)\/dropin$/);
+    if (dropM && req.method === 'POST') {
+      const dir = projectDir(dropM[1]);
+      if (!dir) return send(res, 400, { error: 'bad id' });
+      const opts = JSON.parse(await readBody(req, 1 << 16) || '{}');
+      const outDir = join(dir, 'dropin');
+      const args = [join(ROOT, 'tools', 'dropin.mjs'), dropM[1], '--out', outDir];
+      for (const k of ['name', 'brand', 'note', 'url']) {
+        if (typeof opts[k] === 'string' && opts[k].trim()) args.push(`--${k}`, opts[k].trim().slice(0, 200));
+      }
+      try {
+        const { stdout } = await runNode(args);
+        const zip = join(dir, 'client-page.zip');
+        await runPy('python', ['-c',
+          'import shutil,sys; shutil.make_archive(sys.argv[1], "zip", sys.argv[2])',
+          zip.replace(/\.zip$/, ''), outDir]);
+        const bytes = (await readFile(zip)).length;
+        return send(res, 200, { ok: true, zip: `/p/${dropM[1]}/client-page.zip?dl=1`, bytes, detail: stdout.trim().split('\n').slice(-1)[0].trim() });
+      } catch (e) {
+        return send(res, 400, { error: (e.stderr || e.message || '').split('\n').slice(-3).join(' ').trim() || 'could not build the page' });
+      }
     }
 
     const bakeM = path.match(/^\/api\/projects\/([a-z0-9-]+)\/bake$/);

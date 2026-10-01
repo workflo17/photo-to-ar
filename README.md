@@ -7,7 +7,7 @@ is no per-model licence. Everything after it runs in the browser.
 
 ```bash
 npm start          # http://localhost:5140
-node tools/test.mjs   # 40 end-to-end checks
+node tools/test.mjs   # 44 end-to-end checks
 ```
 
 ComfyUI must be running on `:8188`. The shape engine needs
@@ -100,7 +100,13 @@ cd ~/asset-forge/ComfyUI_windows_portable
    count, a roughness and a relief, in about a second, and it joins the picker.
 5. **Export.** A glTF and a matching USDZ, from one bake, so Android and iOS cannot
    disagree about the product.
-6. **Open it on a phone.** The AR page shows a QR code for this machine's secure
+6. **Hand it to someone.** `node tools/dropin.mjs <projectId> --out <dir> --name "Boucle
+   Lounge Chair" --brand "Workflo" --url https://where-it-will-live` writes a folder any
+   static host serves: the product in a viewer, the AR button, the true size, a QR code
+   for the person reading on a desktop, and the USDZ content type a host otherwise gets
+   wrong. `--deploy` runs Vercel for you. The studio does the same behind "Make a page
+   for a client" and hands back a zip.
+7. **Open it on a phone.** The AR page shows a QR code for this machine's secure
    address, and serves a Draco-compressed twin of the glTF (about 40% of the size)
    with a local decoder, falling back to the plain file. The server prints two
    network addresses on startup. The
@@ -122,9 +128,18 @@ anomalously wider than the band above it, and cut.
 
 **Per-part selection on a fused mesh.** The obvious approach, connected-component
 labelling, is useless here: a reconstructed chair is one watertight shell, so every
-triangle is one component. What actually separates a seat from a back is curvature. So
-the segmentation floods across shared edges and refuses to cross one where the dihedral
-angle exceeds a threshold.
+triangle is one component. What separates a seat from a back is curvature, and what
+separates a walnut leg from a boucle shell is neither: it is material. So the flood
+refuses to cross two things, a crease and a change of material, and the second one
+needs a global answer. An edge-local colour test walks from cream to walnut along a
+gradual path, and on a photo-derived texture there is always a gradual path: measured
+on a shoe, it found five regions at one threshold and one at the next. Clustering the
+whole surface first (area-weighted k-means on an opponent-space colour, clusters closer
+than the threshold merged) gives every triangle a label no path can smear. The chair
+then splits into a cream shell and four walnut legs at 38 degrees, where it used to need
+the crease angle walked all the way down to 8 to find anything at all.
+
+The crease half:
 
 The threshold cannot be a constant, and finding that out was instructive. Tuned against
 plain marching cubes it sat at 38 degrees, because the stair-stepping supplied creases
@@ -152,6 +167,7 @@ lib/carve.mjs      splat mesh -> outer skin     (depth-carved hull + surface net
 lib/hybrid.mjs     shape mesh + colour mesh     (register by silhouette, transfer colour)
 lib/detail.mjs     raw mesh -> relief + colour  (per-texel from the dense mesh)
 lib/project.mjs    photographs -> atlas         (silhouette-aligned projection)
+tools/dropin.mjs   a project -> a client page   (static folder, AR, QR, USDZ mime)
 lib/hybrid.mjs     shape mesh + colour mesh     (register by silhouette, transfer colour)
 web/inspect.html   ?id=&yaw=&flat=1             (dev view of a baked model, relief on/off)
 showcase/          the Shin Godzilla showcase   (build_showcase.py -> one self-contained page)
